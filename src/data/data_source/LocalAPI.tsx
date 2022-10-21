@@ -79,6 +79,7 @@ export async function register(
       hair_color: null,
       skin_color: null,
       eye_color: null,
+      starships: [],
     };
     const forArray: User = {
       name: reg.name,
@@ -144,6 +145,23 @@ export async function createGroup(form: Group) {
     const s2Joined = JSON.stringify(joined);
     AsyncStorage.setItem(`${JOINED_GROUPS}@${form.creator.email}`, s2Joined);
 
+    inviteUsers(form.name, form.invitedUser);
+
+    const sForm = JSON.stringify(form);
+    AsyncStorage.setItem(`group@${form.name}`, sForm);
+    return Promise.resolve({error: null, data: form});
+  } catch (err) {
+    if (err instanceof Error) {
+      return Promise.resolve({error: {message: err.message}, data: null});
+    }
+    return Promise.resolve({error: {message: 'System Error'}, data: null});
+  }
+}
+
+export async function editGroup(form: Group) {
+  try {
+    await fakeLoading(2000);
+    inviteUsers(form.name, form.invitedUser);
     const sForm = JSON.stringify(form);
     AsyncStorage.setItem(`group@${form.name}`, sForm);
     return Promise.resolve({error: null, data: form});
@@ -172,4 +190,60 @@ export async function getGroup(name: string) {
     }
     return Promise.resolve({error: {message: 'System Error'}, data: null});
   }
+}
+
+export async function searchUsers(email: string) {
+  try {
+    let users: User[] = [];
+    let sUsers = await AsyncStorage.getItem(REGISTERED_USERS);
+    if (sUsers !== null) {
+      let parsed: User[] = JSON.parse(sUsers);
+      users = parsed.filter(user => user.email.includes(email));
+    }
+    return Promise.resolve(users);
+  } catch (err) {
+    if (err instanceof Error) {
+      return Promise.resolve([]);
+    }
+    return Promise.resolve([]);
+  }
+}
+
+export async function inviteUsers(groupName: string, users: User[]) {
+  users.forEach(async user => {
+    const joined = await joinedGroups(user.email);
+    joined.invitedGroups.push(groupName);
+    const sJoined = JSON.stringify(joined);
+    AsyncStorage.setItem(`${JOINED_GROUPS}@${user.email}`, sJoined);
+  });
+}
+
+export async function acceptInvitation(user: User, groupName: string) {
+  //Set user when accept
+  let joined = await joinedGroups(user.email);
+  let newJoined: JoinedGroups = {
+    createdGroups: joined.createdGroups,
+    joinedGroups: joined.joinedGroups.concat([groupName]),
+    invitedGroups: joined.invitedGroups.filter(item => item !== groupName),
+  };
+  const sNewJoined = JSON.stringify(newJoined);
+  AsyncStorage.setItem(`${JOINED_GROUPS}@${user.email}`, sNewJoined);
+
+  //Set group when accept
+  let sGroup = await AsyncStorage.getItem(`group@${groupName}`);
+  if (sGroup) {
+    const group: Group = JSON.parse(sGroup);
+    const newInvitedUser = group.invitedUser.filter(
+      u => u.email !== user.email,
+    );
+    const newJoinedUser = group.joinedUser.concat([user]);
+    const newGroup = {
+      ...group,
+      invitedUser: newInvitedUser,
+      joinedUser: newJoinedUser,
+    };
+    const sForm = JSON.stringify(newGroup);
+    AsyncStorage.setItem(`group@${group.name}`, sForm);
+  }
+  return Promise.resolve(newJoined);
 }

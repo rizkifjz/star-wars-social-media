@@ -17,11 +17,10 @@ import {
   TextArea,
   VStack,
   Text,
-  FlatList,
-  Box,
   Pressable,
+  ScrollView,
 } from 'native-base';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {ChevronLeft, ChevronRight} from 'react-native-feather';
 import {StackParamList} from '../../utils/ScreenNavigation';
 import MemberItem from './component/MemberItem';
@@ -29,18 +28,35 @@ import useViewModel from './CreateGroupViewModel';
 
 type Props = NativeStackScreenProps<StackParamList, 'createGroup'>;
 const CreateGroupScreen = ({route}: Props) => {
+  const {group, user, invitedUser} = route.params;
+  const {
+    formData,
+    loading,
+    errors,
+    setFormString,
+    onSave,
+    onEdit,
+    setFormData,
+  } = useViewModel(user, group);
+
+  useEffect(() => {
+    if (invitedUser) {
+      setFormData(state => ({
+        ...state,
+        invitedUser: state.invitedUser.concat(invitedUser),
+      }));
+    }
+  }, [invitedUser, setFormData]);
+
   const navigation = useNavigation<NativeStackNavigationProp<StackParamList>>();
   const onPressBack = () => navigation.goBack();
+  const onInviteMember = () =>
+    navigation.navigate('inviteMembers', {
+      existingUser: formData.joinedUser.concat(formData.invitedUser),
+    });
   const secondTextInput = useRef<any>(null);
-
-  const {group, user} = route.params;
-  const {formData, loading, errors, setFormString, onSave} = useViewModel(
-    group,
-    user,
-  );
-
   return (
-    <Box flex={1} bg="secondary.800">
+    <ScrollView flex={1} bg="secondary.800">
       <VStack>
         <HStack
           alignItems={'center'}
@@ -54,8 +70,11 @@ const CreateGroupScreen = ({route}: Props) => {
           <Heading color="primary.400" size="md">
             {group ? 'Edit Group' : 'Create New Group'}
           </Heading>
-          <Button variant="ghost" colorScheme="primary" onPress={onSave}>
-            Save
+          <Button
+            variant="ghost"
+            colorScheme="primary"
+            onPress={group ? onEdit : onSave}>
+            {group ? 'Edit' : 'Save'}
           </Button>
         </HStack>
         <Center>
@@ -88,7 +107,9 @@ const CreateGroupScreen = ({route}: Props) => {
           </Heading>
         </Center>
         <VStack px="4" py="2">
-          <FormControl isInvalid={errors.name != null} isDisabled={loading}>
+          <FormControl
+            isInvalid={errors.name != null}
+            isDisabled={loading || group !== undefined}>
             <HStack>
               <FormControl.Label _text={{color: 'primary.600'}} flex={1} mr="2">
                 Group Name
@@ -101,6 +122,7 @@ const CreateGroupScreen = ({route}: Props) => {
                 keyboardType="default"
                 returnKeyType="next"
                 autoCapitalize="none"
+                value={formData.name}
                 onChangeText={value => setFormString('name', value)}
                 onSubmitEditing={() => {
                   secondTextInput?.current?.focus();
@@ -125,6 +147,7 @@ const CreateGroupScreen = ({route}: Props) => {
               placeholder="Tell us what your group is all about"
               numberOfLines={4}
               w="100%"
+              value={formData.description}
               isDisabled={loading}
               onChangeText={value => setFormString('description', value)}
               autoCompleteType={undefined}
@@ -135,23 +158,25 @@ const CreateGroupScreen = ({route}: Props) => {
             </FormControl.ErrorMessage>
           </FormControl>
         </VStack>
-        <Pressable onPress={onPressBack}>
-          <HStack
-            bg="primary.100"
-            px="4"
-            py="2"
-            alignItems="center"
-            justifyContent={'space-between'}>
-            <Heading size="xs">Invite Member</Heading>
-            <Icon size="sm" as={ChevronRight} color="black" />
-          </HStack>
-        </Pressable>
       </VStack>
-      <FlatList
-        data={formData.joinedUser}
-        renderItem={({item}) => <MemberItem user={item} />}
-      />
-    </Box>
+      <Pressable onPress={onInviteMember}>
+        <HStack
+          bg="primary.100"
+          px="4"
+          py="2"
+          alignItems="center"
+          justifyContent={'space-between'}>
+          <Heading size="xs">Invite Member</Heading>
+          <Icon size="sm" as={ChevronRight} color="black" />
+        </HStack>
+      </Pressable>
+      {formData.joinedUser.map(item => (
+        <MemberItem user={item} key={item.email} />
+      ))}
+      {formData.invitedUser.map(item => (
+        <MemberItem user={item} isPending={true} key={item.email} />
+      ))}
+    </ScrollView>
   );
 };
 

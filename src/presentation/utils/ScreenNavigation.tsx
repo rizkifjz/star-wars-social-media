@@ -14,6 +14,8 @@ import MyDetailsScreen from '../feature_user/details/MyDetailsScreen';
 import ListGroupsScreen from '../feature_group/lists/ListGroupsScreen';
 import {Group} from '../../domain/model/Group';
 import CreateGroupScreen from '../feature_group/create/CreateGroupScreen';
+import InviteMemberScreen from '../feature_group/create/InviteMemberScreen';
+import GroupDetailsScreen from '../feature_group/details/GroupDetailsScreen';
 
 export type StackParamList = {
   login: undefined;
@@ -22,8 +24,15 @@ export type StackParamList = {
     user: User;
   };
   createGroup: {
-    group: Group | null;
-    user: User | null;
+    user: User;
+    group?: Group;
+    invitedUser?: User[];
+  };
+  inviteMembers: {
+    existingUser: User[];
+  };
+  groupDetails: {
+    group: Group;
   };
 };
 
@@ -48,6 +57,8 @@ const ScreenNavigation: React.FC<Props> = ({initial}) => {
           )}
         />
         <Stack.Screen name="createGroup" component={CreateGroupScreen} />
+        <Stack.Screen name="inviteMembers" component={InviteMemberScreen} />
+        <Stack.Screen name="groupDetails" component={GroupDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

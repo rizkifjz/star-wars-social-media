@@ -199,7 +199,7 @@ const RegisterForm = (props: {onSuccess: Function}) => {
         onPress={() => onSubmit(props.onSuccess)}
         isLoading={loading}
         _text={{bold: true}}
-        _loading={{bg: 'primary400:alpha.70'}}
+        _loading={{bg: 'primary.400:alpha.70'}}
         _spinner={{color: 'primary.900'}}>
         {loading ? '' : 'SUBMIT'}
       </Button>

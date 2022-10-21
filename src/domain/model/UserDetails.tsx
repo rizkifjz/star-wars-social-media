@@ -13,4 +13,5 @@ export type UserDetails = {
   hair_color: string | null;
   skin_color: string | null;
   eye_color: string | null;
+  starships: string[];
 };

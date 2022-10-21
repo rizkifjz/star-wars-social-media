@@ -28,7 +28,11 @@ const RegisterScreen = () => {
   return (
     <Box flex={1} bg="secondary.800">
       <ScrollView>
-        <HStack alignItems={'center'} px="2" pt="2">
+        <HStack
+          alignItems={'center'}
+          px="2"
+          pt="2"
+          justifyContent={'space-between'}>
           <IconButton
             icon={<Icon size="sm" as={ChevronLeft} color="primary.400" />}
             onPress={onPressBack}
@@ -36,6 +40,7 @@ const RegisterScreen = () => {
           <Heading color="primary.400" size="md">
             Register New Account
           </Heading>
+          <Icon size="lg" color="transparent" />
         </HStack>
         <RegisterForm onSuccess={onSuccess} />
       </ScrollView>

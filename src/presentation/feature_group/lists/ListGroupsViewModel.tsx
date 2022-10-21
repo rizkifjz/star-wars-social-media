@@ -1,6 +1,8 @@
 import {useState, useEffect} from 'react';
 import {JoinedGroups} from '../../../domain/model/JoinedGroups';
 import {User} from '../../../domain/model/User';
+import {AcceptGroupInvitation} from '../../../domain/use_case/AcceptGroupInvitation';
+import {GetGroupDetails} from '../../../domain/use_case/GetGroupDetails';
 import {GetJoinedGroups} from '../../../domain/use_case/GetJoinedGroups';
 
 export default function ListGroupsViewModel(user: User) {
@@ -22,8 +24,26 @@ export default function ListGroupsViewModel(user: User) {
     setLoading(false);
   }
 
+  async function getGroupDetails(groupName?: string) {
+    let group;
+    if (groupName) {
+      const {data} = await GetGroupDetails(groupName);
+      if (data) {
+        group = data;
+      }
+    }
+    return group;
+  }
+
+  async function onAcceptInvitation(groupName: string) {
+    const result = await AcceptGroupInvitation(user, groupName);
+    setGroups(result);
+  }
+
   return {
     groups,
     loading,
+    getGroupDetails,
+    onAcceptInvitation,
   };
 }

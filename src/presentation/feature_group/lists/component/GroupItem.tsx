@@ -1,20 +1,15 @@
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {Box, HStack, Avatar, Heading, Pressable} from 'native-base';
 import React from 'react';
-import {GetGroupDetails} from '../../../../domain/use_case/GetGroupDetails';
-import {StackParamList} from '../../../utils/ScreenNavigation';
 
-const GroupItem = (props: {groupName: string}) => {
-  const {groupName} = props;
-  const navigation = useNavigation<NativeStackNavigationProp<StackParamList>>();
-  async function handlePress() {
-    //const group = await GetGroupDetails(groupName);
-    //navigation.navigate('createGroup', {group: group, user: user});
-  }
+const GroupItem = (props: {groupName: string; onPress?: () => void}) => {
+  const {groupName, onPress} = props;
 
   return (
-    <Pressable onPress={handlePress}>
+    <Pressable
+      onPress={onPress ? onPress : () => {}}
+      _pressed={{
+        bg: 'primary.600:alpha.20',
+      }}>
       <Box safeArea width="100%" px="4" py="2">
         <HStack alignItems="center">
           <Avatar alignSelf="center" size="sm">
